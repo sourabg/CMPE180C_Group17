@@ -47,7 +47,7 @@ void *validate_rows_thread(void *arg)
         for(j = 0; j < NUM_COLS; j++) {
             if(validator[suduko_puzzle[i][j] - 1] != -1) {
                 printf("Found Invalid element in row %d at index %d\n", i, j);
-                pthread_exit(NULL);
+                return NULL;
             } else {
                 validator[suduko_puzzle[i][j] - 1] = suduko_puzzle[i][j];
             }
@@ -58,7 +58,7 @@ void *validate_rows_thread(void *arg)
     }
     cout << "All rows valid" << endl;
     row_valid = 1;
-    pthread_exit(NULL); 
+    return NULL;
 } 
 
 /*
@@ -79,7 +79,7 @@ void *validate_cols_thread(void *arg)
         for(j = 0; j < NUM_ROWS; j++) {
             if(validator[suduko_puzzle[j][i] - 1] != -1) {
                 printf("Found Invalid element in col %d at index %d\n", j, i);
-                pthread_exit(NULL);
+                return NULL;
             } else {
                 validator[suduko_puzzle[j][i] - 1] = suduko_puzzle[j][i];
             }
@@ -90,7 +90,7 @@ void *validate_cols_thread(void *arg)
     }
     cout << "All cols valid" << endl;
     col_valid = 1;
-    pthread_exit(NULL);
+    return NULL;
 }
 
 /*
@@ -119,7 +119,7 @@ void *validate_sub_grids_thread(void *arg) {
             element = suduko_puzzle[start_row_idx + i][start_col_idx + j];
             if(validator[element - 1] != -1) {
                 printf("Invalid element found in grid %d at offset[%d][%d]\n", sub_grid_num, i, j);
-                pthread_exit(NULL);
+                return NULL;
             } else {
                 validator[element - 1] = element;
             }
@@ -127,7 +127,7 @@ void *validate_sub_grids_thread(void *arg) {
     }
     cout << "Sub grid:" << sub_grid_num << " valid" << endl;
     sub_grid_valid[sub_grid_num] = 1;
-    pthread_exit(NULL);
+    return NULL;
 }
 
 int main() 
@@ -159,18 +159,16 @@ int main()
     }
     
     auto start = std::chrono::high_resolution_clock::now();
-    pthread_create(&row_validator_thread_id, NULL, validate_rows_thread, NULL); 
-    pthread_create(&col_validator_thread_id, NULL, validate_cols_thread, NULL); 
+    //pthread_create(&row_validator_thread_id, NULL, validate_rows_thread, NULL); 
+    validate_rows_thread(NULL);
+    //pthread_create(&col_validator_thread_id, NULL, validate_cols_thread, NULL); 
+    validate_cols_thread(NULL);
     for(i = 0; i < NUM_GRIDS; i++) {
         sub_grid_data[i] = i;
-        pthread_create(&sub_grid_validator_thread_id[i], NULL, validate_sub_grids_thread, &sub_grid_data[i]);
+        //pthread_create(&sub_grid_validator_thread_id[i], NULL, validate_sub_grids_thread, &sub_grid_data[i]);
+        validate_sub_grids_thread(&sub_grid_data[i]);
     }
 
-    pthread_join(row_validator_thread_id, NULL); 
-    pthread_join(col_validator_thread_id, NULL); 
-    for(i = 0; i < NUM_GRIDS; i++) {
-        pthread_join(sub_grid_validator_thread_id[i], NULL);
-    }
     auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
